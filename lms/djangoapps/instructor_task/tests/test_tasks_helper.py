@@ -26,6 +26,11 @@ from student.models import CourseEnrollment
 from verify_student.tests.factories import SoftwareSecurePhotoVerificationFactory
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
 from xmodule.partitions.partitions import Group, UserPartition
+from instructor_task.models import ReportStore
+from instructor_task.tasks_helper import (
+    cohort_students_and_upload, upload_grades_csv, upload_problem_grade_report, upload_students_csv
+)
+from instructor_task.tests.test_base import InstructorTaskCourseTestCase, TestReportMixin
 
 
 @ddt.ddt
@@ -259,6 +264,35 @@ class TestInstructorGradeReport(TestReportMixin, InstructorTaskCourseTestCase):
         ]
         result = upload_grades_csv(None, None, self.course.id, None, 'graded')
         self.assertDictContainsSubset({'attempted': 1, 'succeeded': 1, 'failed': 0}, result)
+
+
+class TestProblemGradeReport(TestReportMixin, InstructorTaskCourseTestCase):
+    """
+    Test that the weighted problem CSV generation works.
+    """
+    def setUp(self):
+        super(TestProblemGradeReport, self).setUp()
+        # TODO: we will probably want a course structure with split tests and
+        # cohorted content.
+        self.course = CourseFactory.create()
+        # Add unicode data to CSV even though unicode usernames aren't
+        # technically possible in openedx.
+        self.student_1 = self.create_student(u'üser_1', u'student_1@example.com')
+        self.student_2 = self.create_student(u'üser_2', u'student_2@example.com')
+        self.csv_header_row = [u'Student ID', u'Email', u'Username']
+
+    def test_no_problems(self):
+        """
+        Verify that we see no grade information for a  course with no graded
+        problems.
+        """
+        with patch('instructor_task.tasks_helper._get_current_task'):
+            result = upload_problem_grade_report(None, None, self.course.id, None, 'graded')
+        self.assertDictContainsSubset({'action_name': 'graded', 'attempted': 2, 'succeeded': 2, 'failed': 0}, result)
+        self.verify_rows_in_csv([
+            dict(zip(self.csv_header_row, [unicode(self.student_1.id), self.student_1.email, self.student_1.username])),
+            dict(zip(self.csv_header_row, [unicode(self.student_2.id), self.student_2.email, self.student_2.username]))
+        ])
 
 
 @ddt.ddt
