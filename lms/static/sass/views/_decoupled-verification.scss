@@ -91,6 +91,7 @@
 
         .photo-controls {
             position: relative;
+            text-align: center;
 
             .control {
                 &.control-do {
@@ -153,7 +154,7 @@
 
         .list-help {
             list-style: disc;
-            padding-left: 20px;
+            @include padding-left($baseline);
         }
 
         .list-faq {
