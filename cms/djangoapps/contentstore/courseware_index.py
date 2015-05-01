@@ -190,6 +190,7 @@ class SearchIndexerBase(object):
                 item_index['id'] = item_id
                 if item.start:
                     item_index['start_date'] = item.start
+                item_index.update(cls.supplemental_fields(item))
 
                 searcher.index(cls.DOCUMENT_TYPE, item_index)
                 indexed_count["count"] += 1
@@ -271,6 +272,14 @@ class SearchIndexerBase(object):
         """
         pass
 
+    @classmethod
+    def supplemental_fields(cls, item):  # pylint: disable=unused-argument
+        """
+        Any supplemental fields that get added to the index for the specified
+        item. Base implementation returns an empty dictionary
+        """
+        return {}
+
 
 class CoursewareSearchIndexer(SearchIndexerBase):
     """
@@ -313,6 +322,22 @@ class CoursewareSearchIndexer(SearchIndexerBase):
         Perform additional indexing from loaded structure object
         """
         CourseAboutSearchIndexer.index_about_information(modulestore, structure)
+
+    @classmethod
+    def supplemental_fields(cls, item):
+        """
+        Add location path to the item object
+        """
+        location_path = []
+        parent = item
+        while parent is not None:
+            location_path.append(parent.display_name_with_default)
+            parent = parent.get_parent()
+        location_path.reverse()
+        return {
+            "course_name": location_path[0],
+            "location": location_path[1:4]
+        }
 
 
 class LibrarySearchIndexer(SearchIndexerBase):
