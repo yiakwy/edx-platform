@@ -16,6 +16,7 @@ from django_comment_common.models import (
 from lms.lib.comment_client.thread import Thread
 from lms.lib.comment_client.user import User
 from openedx.core.djangoapps.course_groups.cohorts import get_cohort_id
+from openedx.core.djangoapps.course_groups.models import CourseUserGroup
 
 
 def get_course_topics(course, user):
@@ -77,7 +78,7 @@ def get_course_topics(course, user):
     }
 
 
-def _cc_thread_to_api_thread(thread, cc_user, staff_user_ids, ta_user_ids):
+def _cc_thread_to_api_thread(thread, cc_user, staff_user_ids, ta_user_ids, group_ids_to_names):
     """
     Convert a thread data dict from the comment_client format (which is a direct
     representation of the format returned by the comments service) to the format
@@ -95,6 +96,7 @@ def _cc_thread_to_api_thread(thread, cc_user, staff_user_ids, ta_user_ids):
         for key in [
             "id",
             "course_id",
+            "group_id",
             "created_at",
             "updated_at",
             "type",
@@ -105,6 +107,7 @@ def _cc_thread_to_api_thread(thread, cc_user, staff_user_ids, ta_user_ids):
     }
     ret.update({
         "topic_id": thread["commentable_id"],
+        "group_name": group_ids_to_names.get(thread["group_id"], None),
         "author": None if is_anonymous else thread["username"],
         "author_label": (
             None if is_anonymous else
@@ -171,9 +174,13 @@ def get_thread_list(request, course_key, page, page_size):
         for role in Role.objects.filter(name=FORUM_ROLE_COMMUNITY_TA, course_id=course_key)
         for user in role.users.all()
     }
+    group_ids_to_names = {
+        group.id: group.name
+        for group in CourseUserGroup.objects.filter(course_id=course_key)
+    }
 
     results = [
-        _cc_thread_to_api_thread(thread, cc_user, staff_user_ids, ta_user_ids)
+        _cc_thread_to_api_thread(thread, cc_user, staff_user_ids, ta_user_ids, group_ids_to_names)
         for thread in threads
     ]
     return get_paginated_data(request, results, page, num_pages)

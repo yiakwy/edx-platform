@@ -336,6 +336,7 @@ class GetThreadListTest(CommentsServiceMockMixin, ModuleStoreTestCase):
         self.request.user = self.user
         self.course = CourseFactory.create()
         self.author = UserFactory.create()
+        self.cohort = CohortFactory.create(course_id=self.course.id)
 
     def get_thread_list(self, threads, page=1, page_size=1, num_pages=1, course=None):
         """
@@ -362,6 +363,7 @@ class GetThreadListTest(CommentsServiceMockMixin, ModuleStoreTestCase):
             "id": "dummy",
             "course_id": unicode(self.course.id),
             "commentable_id": "dummy",
+            "group_id": None,
             "user_id": str(self.author.id),
             "username": self.author.username,
             "anonymous": False,
@@ -413,6 +415,7 @@ class GetThreadListTest(CommentsServiceMockMixin, ModuleStoreTestCase):
                 "id": "test_thread_id_0",
                 "course_id": unicode(self.course.id),
                 "commentable_id": "topic_x",
+                "group_id": None,
                 "user_id": str(self.author.id),
                 "username": self.author.username,
                 "anonymous": False,
@@ -433,6 +436,7 @@ class GetThreadListTest(CommentsServiceMockMixin, ModuleStoreTestCase):
                 "id": "test_thread_id_1",
                 "course_id": unicode(self.course.id),
                 "commentable_id": "topic_y",
+                "group_id": self.cohort.id,
                 "user_id": str(self.author.id),
                 "username": self.author.username,
                 "anonymous": False,
@@ -453,6 +457,7 @@ class GetThreadListTest(CommentsServiceMockMixin, ModuleStoreTestCase):
                 "id": "test_thread_id_2",
                 "course_id": unicode(self.course.id),
                 "commentable_id": "topic_x",
+                "group_id": self.cohort.id + 1,  # non-existent group
                 "user_id": str(self.author.id),
                 "username": self.author.username,
                 "anonymous": False,
@@ -475,6 +480,8 @@ class GetThreadListTest(CommentsServiceMockMixin, ModuleStoreTestCase):
                 "id": "test_thread_id_0",
                 "course_id": unicode(self.course.id),
                 "topic_id": "topic_x",
+                "group_id": None,
+                "group_name": None,
                 "author": self.author.username,
                 "author_label": None,
                 "created_at": "2015-04-28T00:00:00Z",
@@ -495,6 +502,8 @@ class GetThreadListTest(CommentsServiceMockMixin, ModuleStoreTestCase):
                 "id": "test_thread_id_1",
                 "course_id": unicode(self.course.id),
                 "topic_id": "topic_y",
+                "group_id": self.cohort.id,
+                "group_name": self.cohort.name,
                 "author": self.author.username,
                 "author_label": None,
                 "created_at": "2015-04-28T22:22:22Z",
@@ -515,6 +524,8 @@ class GetThreadListTest(CommentsServiceMockMixin, ModuleStoreTestCase):
                 "id": "test_thread_id_2",
                 "course_id": unicode(self.course.id),
                 "topic_id": "topic_x",
+                "group_id": self.cohort.id + 1,
+                "group_name": None,
                 "author": self.author.username,
                 "author_label": None,
                 "created_at": "2015-04-28T00:44:44Z",
