@@ -11,6 +11,7 @@ from mock import Mock, patch
 import tempfile
 import unicodecsv
 
+<<<<<<< HEAD
 from capa.tests.response_xml_factory import MultipleChoiceResponseXMLFactory
 from certificates.tests.factories import GeneratedCertificateFactory, CertificateWhitelistFactory
 from course_modes.models import CourseMode
@@ -293,6 +294,16 @@ class TestProblemGradeReport(TestReportMixin, InstructorTaskCourseTestCase):
             dict(zip(self.csv_header_row, [unicode(self.student_1.id), self.student_1.email, self.student_1.username, '0.0'])),
             dict(zip(self.csv_header_row, [unicode(self.student_2.id), self.student_2.email, self.student_2.username, '0.0']))
         ])
+
+    def test_single_problem(self, _get_current_task):
+        self.initialize_course()
+        problem = ItemFactory.create(
+            parent_location=chapter.location,
+            category='problem',
+            metadata={'graded': True},
+            display_name='Problem 1'
+        )
+
 
 
 @ddt.ddt
