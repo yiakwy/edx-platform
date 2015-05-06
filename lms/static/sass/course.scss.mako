@@ -41,10 +41,7 @@
 @import 'course/courseware/sidebar';
 @import 'course/courseware/amplifier';
 
-## Import styles for search
-% if env["FEATURES"].get("ENABLE_COURSEWARE_SEARCH"):
-    @import 'search/_search';
-% endif
+@import 'search/_search';
 
 // course - modules
 @import 'course/modules/student-notes'; // student notes
