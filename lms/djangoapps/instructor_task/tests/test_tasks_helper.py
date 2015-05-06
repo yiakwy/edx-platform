@@ -279,19 +279,19 @@ class TestProblemGradeReport(TestReportMixin, InstructorTaskCourseTestCase):
         # technically possible in openedx.
         self.student_1 = self.create_student(u'üser_1', u'student_1@example.com')
         self.student_2 = self.create_student(u'üser_2', u'student_2@example.com')
-        self.csv_header_row = [u'Student ID', u'Email', u'Username']
+        self.csv_header_row = [u'Student ID', u'Email', u'Username', u'Final Grade']
 
-    def test_no_problems(self):
+    @patch('instructor_task.tasks_helper._get_current_task')
+    def test_no_problems(self, _get_current_task):
         """
         Verify that we see no grade information for a  course with no graded
         problems.
         """
-        with patch('instructor_task.tasks_helper._get_current_task'):
-            result = upload_problem_grade_report(None, None, self.course.id, None, 'graded')
+        result = upload_problem_grade_report(None, None, self.course.id, None, 'graded')
         self.assertDictContainsSubset({'action_name': 'graded', 'attempted': 2, 'succeeded': 2, 'failed': 0}, result)
         self.verify_rows_in_csv([
-            dict(zip(self.csv_header_row, [unicode(self.student_1.id), self.student_1.email, self.student_1.username])),
-            dict(zip(self.csv_header_row, [unicode(self.student_2.id), self.student_2.email, self.student_2.username]))
+            dict(zip(self.csv_header_row, [unicode(self.student_1.id), self.student_1.email, self.student_1.username, '0.0'])),
+            dict(zip(self.csv_header_row, [unicode(self.student_2.id), self.student_2.email, self.student_2.username, '0.0']))
         ])
 
 
