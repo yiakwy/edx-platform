@@ -925,7 +925,7 @@ class TestStaffDebugInfo(ModuleStoreTestCase):
             self.user,
             self.descriptor
         )
-        with patch('xmodule_modifiers.grade_histogram') as mock_grade_histogram:
+        with patch('openedx.xblock.xmodule_modifiers.grade_histogram') as mock_grade_histogram:
             mock_grade_histogram.return_value = []
             module = render.get_module(
                 self.user,
@@ -947,7 +947,7 @@ class TestStaffDebugInfo(ModuleStoreTestCase):
             max_grade=1,
             state="{}",
         )
-        with patch('xmodule_modifiers.grade_histogram') as mock_grade_histogram:
+        with patch('openedx.xblock.xmodule_modifiers.grade_histogram') as mock_grade_histogram:
             mock_grade_histogram.return_value = []
             module = render.get_module(
                 self.user,

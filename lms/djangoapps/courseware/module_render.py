@@ -54,7 +54,7 @@ from opaque_keys.edx.locations import SlashSeparatedCourseKey
 from xmodule.contentstore.django import contentstore
 from xmodule.modulestore.django import modulestore, ModuleI18nService
 from xmodule.modulestore.exceptions import ItemNotFoundError
-from xmodule_modifiers import (
+from openedx.xblock.xmodule_modifiers import (
     replace_course_urls,
     replace_jump_to_id_urls,
     replace_static_urls,
