@@ -380,6 +380,9 @@ FEATURES = {
         'TWITTER_SHARING': False,
         'TWITTER_SHARING_TEXT': None
     },
+
+    # Software secure fake page feature flag
+    'ENABLE_SOFTWARE_SECURE_FAKE': False,
 }
 
 # Ignore static asset files on import which match this pattern
