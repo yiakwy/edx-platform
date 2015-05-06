@@ -144,6 +144,33 @@ def restore_params_from_session(request):
     return get_required_parameters(session_params, additional_params)
 
 
+def render_horseware(request, course_id, usage_id):
+    """
+    Renders a chromeless xblock without any lti references
+    """
+    course_key = CourseKey.from_string(course_id)
+    user = request.user
+    course = get_course_with_access(user, 'load', course_key)
+    staff = has_access(request.user, 'staff', course)
+    instance, _ = get_module_by_usage_id(request, course_id, usage_id)
+
+    fragment = instance.render('student_view', context=request.GET)
+
+    context = {
+        'fragment': fragment,
+        'course': course,
+        'disable_accordion': True,
+        'allow_iframing': True,
+        'disable_header': True,
+        'disable_footer': True,
+        'disable_tabs': True,
+        'staff_access': staff,
+        'xqa_server': settings.FEATURES.get('USE_XQA_SERVER', 'http://example.com/xqa'),
+    }
+
+    return render_to_response('courseware/courseware.html', context)
+
+
 def render_courseware(request, lti_params):
     """
     Render the content requested for the LTI launch.
