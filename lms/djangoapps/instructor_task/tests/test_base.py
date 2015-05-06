@@ -141,7 +141,7 @@ class InstructorTaskCourseTestCase(LoginEnrollmentTestCase, ModuleStoreTestCase)
     @staticmethod
     def get_user_email(username):
         """Generate email address based on username"""
-        return '{0}@test.com'.format(username)
+        return u'{0}@test.com'.format(username)
 
     def login_username(self, username):
         """Login the user, given the `username`."""

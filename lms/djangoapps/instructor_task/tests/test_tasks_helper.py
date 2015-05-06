@@ -266,19 +266,20 @@ class TestInstructorGradeReport(TestReportMixin, InstructorTaskCourseTestCase):
         self.assertDictContainsSubset({'attempted': 1, 'succeeded': 1, 'failed': 0}, result)
 
 
-class TestProblemGradeReport(TestReportMixin, InstructorTaskCourseTestCase):
+class TestProblemGradeReport(TestReportMixin, InstructorTaskModuleTestCase):
     """
     Test that the weighted problem CSV generation works.
     """
     def setUp(self):
         super(TestProblemGradeReport, self).setUp()
+        self.maxDiff = None
         # TODO: we will probably want a course structure with split tests and
         # cohorted content.
-        self.course = CourseFactory.create()
+        self.initialize_course()
         # Add unicode data to CSV even though unicode usernames aren't
         # technically possible in openedx.
-        self.student_1 = self.create_student(u'üser_1', u'student_1@example.com')
-        self.student_2 = self.create_student(u'üser_2', u'student_2@example.com')
+        self.student_1 = self.create_student(u'üser_1')
+        self.student_2 = self.create_student(u'üser_2')
         self.csv_header_row = [u'Student ID', u'Email', u'Username', u'Final Grade']
 
     @patch('instructor_task.tasks_helper._get_current_task')
@@ -294,14 +295,32 @@ class TestProblemGradeReport(TestReportMixin, InstructorTaskCourseTestCase):
             dict(zip(self.csv_header_row, [unicode(self.student_2.id), self.student_2.email, self.student_2.username, '0.0']))
         ])
 
+    @patch('instructor_task.tasks_helper._get_current_task')
     def test_single_problem(self, _get_current_task):
-        self.initialize_course()
-        problem = ItemFactory.create(
-            parent_location=chapter.location,
-            category='problem',
+        vertical = ItemFactory.create(
+            parent_location=self.problem_section.location,
+            category='vertical',
             metadata={'graded': True},
-            display_name='Problem 1'
+            display_name='Problem Vertical'
         )
+        self.define_option_problem('Problem1', parent=vertical)
+        # generate the course structure
+
+        self.submit_student_answer(self.student_1.username, 'Problem1', ['Option 1'])
+        result = upload_problem_grade_report(None, None, self.course.id, None, 'graded')
+        self.assertDictContainsSubset({'action_name': 'graded', 'attempted': 2, 'succeeded': 2, 'failed': 0}, result)
+        problem_name = 'Homework 1: Problem - Problem1'
+        header_row = self.csv_header_row + [problem_name + ' (Earned)', problem_name + ' (Possible)']
+        self.verify_rows_in_csv([
+            dict(zip(
+                header_row,
+                [unicode(self.student_1.id), self.student_1.email, self.student_1.username, '0.01', '1.0', '2.0']
+            )),
+            dict(zip(
+                header_row,
+                [unicode(self.student_2.id), self.student_2.email, self.student_2.username, '0.0', 'N/A', 'N/A']
+            ))
+        ])
 
 
 
