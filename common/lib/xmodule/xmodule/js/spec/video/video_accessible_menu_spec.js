@@ -14,12 +14,12 @@
 
                 beforeEach(function () {
                     state = jasmine.initializePlayer();
-                    videoTracks = $('li.video-tracks');
-                    container = videoTracks.children('div.a11y-menu-container');
-                    button = container.children('a.a11y-menu-button');
-                    menuList = container.children('ol.a11y-menu-list');
-                    menuItems = menuList.children('li.a11y-menu-item');
-                    menuItemsLinks = menuItems.children('a.a11y-menu-item-link');
+                    videoTracks = $('.video-tracks');
+                    container = videoTracks.children('.wrapper-more-actions');
+                    button = container.children('.has-dropdown');
+                    menuList = container.children('.dropdown');
+                    menuItems = menuList.children('.dropdown-item');
+                    menuItemsLinks = menuItems.children('.action');
                 });
 
                 it('add the accessible menu', function () {
@@ -39,11 +39,11 @@
                     activeMenuItem = menuItems.filter('.active');
                     expect(activeMenuItem.length).toBe(1);
 
-                    expect(activeMenuItem.children('a.a11y-menu-item-link'))
+                    expect(activeMenuItem.children('.action'))
                         .toHaveData('value', 'srt');
 
-                    expect(activeMenuItem.children('a.a11y-menu-item-link'))
-                        .toHaveHtml('SubRip (.srt) file');
+                    // expect(activeMenuItem.children('.action'))
+                    //     .toHaveHtml('SubRip (.srt) file');
 
                     /* TO DO: Check that all the anchors contain correct text.
                     $.each(li.toArray().reverse(), function (index, link) {
@@ -60,16 +60,13 @@
                 it('add ARIA attributes to button, menu, and menu items links',
                    function () {
                     expect(button).toHaveAttrs({
-                        'role': 'button',
-                        'title': '.srt',
-                        'aria-disabled': 'false'
+                        'aria-disabled': 'false',
+                        'aria-haspopup': 'true',
+                        'aria-expanded': 'false'
                     });
-
-                    expect(menuList).toHaveAttr('role', 'menu');
 
                     menuItemsLinks.each(function(){
                         expect($(this)).toHaveAttrs({
-                            'role': 'menuitem',
                             'aria-disabled': 'false'
                         });
                     });
@@ -112,159 +109,24 @@
 
                 beforeEach(function () {
                     state = jasmine.initializePlayer();
-                    videoTracks = $('li.video-tracks');
-                    container = videoTracks.children('div.a11y-menu-container');
-                    button = container.children('a.a11y-menu-button');
-                    menuList = container.children('ol.a11y-menu-list');
-                    menuItems = menuList.children('li.a11y-menu-item');
-                    menuItemsLinks = menuItems.children('a.a11y-menu-item-link');
+                    videoTracks = $('.video-tracks');
+                    container = videoTracks.children('.wrapper-more-actions');
+                    button = container.children('.button-more.has-dropdown');
+                    menuList = container.children('.dropdown');
+                    menuItems = menuList.children('.dropdown-item');
+                    menuItemsLinks = menuItems.children('.action');
                     spyOn($.fn, 'focus').andCallThrough();
                 });
 
-                it('open/close the menu on mouseenter/mouseleave', function () {
-                    container.mouseenter();
-                    expect(container).toHaveClass('open');
-                    container.mouseleave();
-                    expect(container).not.toHaveClass('open');
+                it('open the menu on click', function () {
+                    button.click();
+                    expect(button).toHaveClass('is-active');
+                    expect(menuList).toHaveClass('is-visible');
                 });
 
-                it('do not close the menu on mouseleave if a menu item has ' +
-                    'focus', function () {
-                    // Open menu. Focus is on last menu item.
-                    container.trigger(keyPressEvent(KEY.ENTER));
-                    container.mouseenter().mouseleave();
-                    expect(container).toHaveClass('open');
-                });
-
-                it('close the menu on click', function () {
-                    container.mouseenter().click();
-                    expect(container).not.toHaveClass('open');
-                });
-
-                it('close the menu on outside click', function () {
-                    container.trigger(keyPressEvent(KEY.ENTER));
+                if('close the menu on outside click', function() {
                     $(window).click();
-                    expect(container).not.toHaveClass('open');
-                });
-
-                it('open the menu on ENTER keydown', function () {
-                    container.trigger(keyPressEvent(KEY.ENTER));
-                    expect(container).toHaveClass('open');
-                    expect(menuItemsLinks.last().focus).toHaveBeenCalled();
-                });
-
-                it('open the menu on SPACE keydown', function () {
-                    container.trigger(keyPressEvent(KEY.SPACE));
-                    expect(container).toHaveClass('open');
-                    expect(menuItemsLinks.last().focus).toHaveBeenCalled();
-                });
-
-                it('open the menu on UP keydown', function () {
-                    container.trigger(keyPressEvent(KEY.UP));
-                    expect(container).toHaveClass('open');
-                    expect(menuItemsLinks.last().focus).toHaveBeenCalled();
-                });
-
-                it('close the menu on ESCAPE keydown', function () {
-                    container.trigger(keyPressEvent(KEY.ESCAPE));
-                    expect(container).not.toHaveClass('open');
-                });
-
-                it('UP and DOWN keydown function as expected on menu items',
-                   function () {
-                    // Iterate through list in both directions and check if
-                    // things wrap up correctly.
-                    var lastEntry = menuItemsLinks.length-1, i;
-
-                    // First open menu
-                    container.trigger(keyPressEvent(KEY.UP));
-
-                    // Iterate with UP key until we have looped.
-                    for (i = lastEntry; i >= 0; i--) {
-                        menuItemsLinks.eq(i).trigger(keyPressEvent(KEY.UP));
-                    }
-
-                    // Iterate with DOWN key until we have looped.
-                    for (i = 0; i <= lastEntry; i++) {
-                        menuItemsLinks.eq(i).trigger(keyPressEvent(KEY.DOWN));
-                    }
-
-                    // Test if each element has been called twice.
-                    expect($.fn.focus.calls.length)
-                        .toEqual(2*menuItemsLinks.length+1);
-                });
-
-                it('ESC keydown on menu item closes menu', function () {
-                    // First open menu. Focus is on last speed entry.
-                    container.trigger(keyPressEvent(KEY.UP));
-                    menuItemsLinks.last().trigger(keyPressEvent(KEY.ESCAPE));
-
-                    // Menu is closed and focus has been returned to speed
-                    // control.
-                    expect(container).not.toHaveClass('open');
-                    expect(container.focus).toHaveBeenCalled();
-                });
-
-                it('ENTER keydown on menu item selects its data and closes menu',
-                   function () {
-                    // First open menu.
-                    container.trigger(keyPressEvent(KEY.UP));
-                    // Focus on '.txt'
-                    menuItemsLinks.eq(0).focus();
-                    menuItemsLinks.eq(0).trigger(keyPressEvent(KEY.ENTER));
-
-                    // Menu is closed, focus has been returned to container
-                    // and file format is '.txt'.
-                    /* TO DO
-                    expect(container.focus).toHaveBeenCalled();
-                    expect($('.video_speeds li[data-speed="1.50"]'))
-                        .toHaveClass('active');
-                    expect($('.speeds p.active')).toHaveHtml('1.50x');
-                    */
-                });
-
-                it('SPACE keydown on menu item selects its data and closes menu',
-                   function () {
-                    // First open menu.
-                    container.trigger(keyPressEvent(KEY.UP));
-                    // Focus on '.txt'
-                    menuItemsLinks.eq(0).focus();
-                    menuItemsLinks.eq(0).trigger(keyPressEvent(KEY.SPACE));
-
-                    // Menu is closed, focus has been returned to container
-                    // and file format is '.txt'.
-                    /* TO DO
-                    expect(speedControl.focus).toHaveBeenCalled();
-                    expect($('.video_speeds li[data-speed="1.50"]'))
-                        .toHaveClass('active');
-                    expect($('.speeds p.active')).toHaveHtml('1.50x');
-                    */
-                });
-
-                // TO DO? No such behavior implemented.
-                xit('TAB + SHIFT keydown on speed entry closes menu and gives ' +
-                    'focus to Play/Pause control', function () {
-                    // First open menu. Focus is on last speed entry.
-                    speedControl.trigger(keyPressEvent(KEY.UP));
-                    speedEntries.last().trigger(tabBackPressEvent());
-
-                    // Menu is closed and focus has been given to Play/Pause
-                    // control.
-                    expect(state.videoControl.playPauseEl.focus)
-                        .toHaveBeenCalled();
-                });
-
-                // TO DO? No such behavior implemented.
-                xit('TAB keydown on speed entry closes menu and gives focus ' +
-                   'to Volume control', function () {
-                    // First open menu. Focus is on last speed entry.
-                    speedControl.trigger(keyPressEvent(KEY.UP));
-                    speedEntries.last().trigger(tabForwardPressEvent());
-
-                    // Menu is closed and focus has been given to Volume
-                    // control.
-                    expect(state.videoVolumeControl.buttonEl.focus)
-                        .toHaveBeenCalled();
+                    expect(menuList).not.toHaveClass('is-visible');
                 });
             });
         });
