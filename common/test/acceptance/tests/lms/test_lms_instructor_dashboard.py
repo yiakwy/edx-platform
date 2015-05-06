@@ -345,14 +345,10 @@ class DataDownloadsTest(BaseInstructorDashboardTest):
         Verifies that a report can be downloaded and an event fired.
         """
         download_links = self.data_download_section.report_download_links
+        self.assertEquals(len(download_links), 1)
         download_links[0].click()
         expected_url = download_links.attrs('href')[0]
-        if not len(download_links) == 1 or report_name not in expected_url:
-            self.assertEqual(
-                [expected_url],
-                download_links.attrs('href'),
-                msg="Only the expected report should have been generated"
-            )
+        self.assertIn(report_name, expected_url)
         self.verify_report_downloaded_event(expected_url)
 
     def test_student_profiles_report_download(self):
