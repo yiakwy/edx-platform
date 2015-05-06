@@ -329,6 +329,11 @@ class CoursewareSearchIndexer(SearchIndexerBase):
     def supplemental_fields(cls, item):
         """
         Add location path to the item object
+
+        Once we've established the path of names, the first name is the course
+        name, anf the next 3 names are the navigable path within the edx
+        application. Notice that we stop at that level becuase a full path to
+        deep children would be confusing.
         """
         location_path = []
         parent = item
