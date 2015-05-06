@@ -736,10 +736,13 @@ def _order_problems(blocks):
 
         # Put the problems into the correct order within their assignment.
         if blocks[block]['block_type'] == 'problem' and blocks[block]['graded'] is True:
-            parent = blocks[block]['parent']
-            grandparent = blocks[parent]['parent']
-            grandparent_format = blocks[grandparent]['format']
-            assignments[grandparent_format][grandparent].append(block)
+            current = blocks[block]['parent']
+            # crawl up the tree for the sequential block
+            while blocks[current]['block_type'] != 'sequential':
+                current = blocks[current]['parent']
+
+            current_format = blocks[current]['format']
+            assignments[current_format][current].append(block)
 
     # Now that we have a sorting and an order for the assignments and problems,
     # iterate through them in order to generate the header row.
