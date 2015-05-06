@@ -820,6 +820,10 @@ def upload_problem_grade_report(_xmodule_instance_args, _entry_id, course_id, _t
 
     # Perform the upload
     upload_csv_to_report_store(rows, 'problem_grade_report', course_id, start_date)
+    # If there are any error rows (don't count the header), write them out as well
+    if len(error_rows) > 1:
+        upload_csv_to_report_store(error_rows, 'problem_grade_report_err', course_id, start_date)
+
     return task_progress.update_task_state(extra_meta={'step': 'Uploading CSV'})
 
 
