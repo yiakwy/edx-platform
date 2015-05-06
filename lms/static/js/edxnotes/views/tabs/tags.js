@@ -1,18 +1,28 @@
 ;(function (define, undefined) {
 'use strict';
 define([
-    'gettext', 'underscore', 'js/edxnotes/views/note_group', 'js/edxnotes/views/tab_panel',
+    'gettext', 'jquery', 'underscore', 'js/edxnotes/views/note_group', 'js/edxnotes/views/tab_panel',
     'js/edxnotes/views/tab_view'
-], function (gettext, _, NoteGroupView, TabPanelView, TabView) {
+], function (gettext, $, _, NoteGroupView, TabPanelView, TabView) {
+
     var TagsView = TabView.extend({
+        scrollToTag: function(tagName) {
+            if (!this.tabModel.isActive()) {
+                this.tabModel.activate();
+            }
+            var tagTitle = this.$el.find('.tags-title').filter(function(){ return $(this).text() === tagName.toLowerCase();});
+            $('html,body').animate({
+                scrollTop: tagTitle.offset().top - 10
+            },'slow');
+        },
         PanelConstructor: TabPanelView.extend({
             id: 'tags-panel',
             title: 'Tags',
             noTags: gettext('no tags'),  // User-defined tags cannot have spaces, so no risk of a collision.
 
             renderContent: function () {
-                var notes_by_tag = {}, noTags = this.noTags, addNoteForTag, note_info, note_list, tags, i,
-                    sorted_tag_names, container, group;
+                var notesByTag = {}, noTags = this.noTags, addNoteForTag, noteInfo, noteList, tags, i,
+                    sortedTagNames, container, group;
 
                 // Iterate through all the notes and build up a dictionary structure by tag.
                 // Note that the collection will be in most-recently updated order already.
@@ -21,17 +31,17 @@ define([
                 // index is the collection index when a tag structure is first created. This can be used
                 // for tie-breaking when sorting by the total number of notes with a given tag.
                 addNoteForTag = function (note, tag, index) {
-                    note_info = notes_by_tag[tag.toLowerCase()];
-                    if (note_info === undefined) {
-                        note_info = {notes: [], index: index};
-                        notes_by_tag[tag.toLowerCase()] = note_info;
+                    noteInfo = notesByTag[tag.toLowerCase()];
+                    if (noteInfo === undefined) {
+                        noteInfo = {notes: [], index: index};
+                        notesByTag[tag.toLowerCase()] = noteInfo;
                     }
-                    note_list = note_info.notes;
+                    noteList = noteInfo.notes;
                     // If a note was tagged with the same tag more than once, don't add again.
                     // We can assume it would be the last element of the list because we iterate through
                     // all tags on a given note before moving on to the text note.
-                    if (note_list.length === 0 || note_list[note_list.length -1] !== note) {
-                        note_list.push(note);
+                    if (noteList.length === 0 || noteList[noteList.length -1] !== note) {
+                        noteList.push(note);
                     }
                 };
 
@@ -47,7 +57,7 @@ define([
                     }
                 });
 
-                sorted_tag_names = Object.keys(notes_by_tag).sort(function (a, b) {
+                sortedTagNames = Object.keys(notesByTag).sort(function (a, b) {
                     // "no tags" should always appear last
                     if (a === noTags) {
                         return 1;
@@ -55,23 +65,23 @@ define([
                     else if (b === noTags) {
                         return -1;
                     }
-                    else if (notes_by_tag[a].notes.length > notes_by_tag[b].notes.length) {
+                    else if (notesByTag[a].notes.length > notesByTag[b].notes.length) {
                         return -1;
                     }
-                    else if (notes_by_tag[a].notes.length < notes_by_tag[b].notes.length) {
+                    else if (notesByTag[a].notes.length < notesByTag[b].notes.length) {
                         return 1;
                     }
                     else {
                         // Tie-breaker, go with the list of notes that has the most recently updated note.
-                        return notes_by_tag[a].index - notes_by_tag[b].index;
+                        return notesByTag[a].index - notesByTag[b].index;
                     }
                 });
 
                container = document.createDocumentFragment();
 
-                _.each(sorted_tag_names, function (tag_name) {
-                    group = this.getGroup(tag_name);
-                    group.addChild(this.getNotes(notes_by_tag[tag_name].notes));
+                _.each(sortedTagNames, function (tagName) {
+                    group = this.getGroup(tagName);
+                    group.addChild(this.getNotes(notesByTag[tagName].notes));
                     container.appendChild(group.render().el);
                 }, this);
 
@@ -79,9 +89,9 @@ define([
                 return this;
             },
 
-            getGroup: function (tag_name) {
+            getGroup: function (tagName) {
                 var group = new NoteGroupView.groupView({
-                    displayName: tag_name,
+                    displayName: tagName,
                     template: '<h3 class="tags-title"><%- displayName %></h3>',
                     className: "note-group"
                 });

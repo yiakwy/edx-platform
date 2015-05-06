@@ -78,7 +78,8 @@ define([
                 if (collection.length) {
                     return new this.PanelConstructor({
                         collection: collection,
-                        searchQuery: this.searchResults.searchQuery
+                        searchQuery: this.searchResults.searchQuery,
+                        scrollToTag: this.options.scrollToTag
                     });
                 } else {
                     return new this.NoResultsViewConstructor({

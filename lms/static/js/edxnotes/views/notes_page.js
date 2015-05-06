@@ -13,29 +13,38 @@ define([
             this.options = options;
             this.tabsCollection = new TabsCollection();
 
-            this.recentActivityView = new RecentActivityView({
-                el: this.el,
-                collection: this.collection,
-                tabsCollection: this.tabsCollection
-            });
-
-            this.courseStructureView = new CourseStructureView({
-                el: this.el,
-                collection: this.collection,
-                tabsCollection: this.tabsCollection
-            });
-
             this.tagsView = new TagsView({
                 el: this.el,
                 collection: this.collection,
                 tabsCollection: this.tabsCollection
             });
 
+            var scrollToTag = this.tagsView.scrollToTag.bind(this.tagsView);
+            this.tagsView.options.scrollToTag = scrollToTag;
+            var tagModel = this.tabsCollection.shift();
+
+            this.recentActivityView = new RecentActivityView({
+                el: this.el,
+                collection: this.collection,
+                tabsCollection: this.tabsCollection,
+                scrollToTag: scrollToTag
+            });
+
+            this.courseStructureView = new CourseStructureView({
+                el: this.el,
+                collection: this.collection,
+                tabsCollection: this.tabsCollection,
+                scrollToTag: scrollToTag
+            });
+
+            this.tabsCollection.push(tagModel);
+
             this.searchResultsView = new SearchResultsView({
                 el: this.el,
                 tabsCollection: this.tabsCollection,
                 debug: this.options.debug,
-                createTabOnInitialization: false
+                createTabOnInitialization: false,
+                scrollToTag: scrollToTag
             });
 
             this.tabsView = new TabsListView({collection: this.tabsCollection});
