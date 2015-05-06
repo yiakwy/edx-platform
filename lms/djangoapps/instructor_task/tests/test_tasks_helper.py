@@ -11,7 +11,6 @@ from mock import Mock, patch
 import tempfile
 import unicodecsv
 
-<<<<<<< HEAD
 from capa.tests.response_xml_factory import MultipleChoiceResponseXMLFactory
 from certificates.tests.factories import GeneratedCertificateFactory, CertificateWhitelistFactory
 from course_modes.models import CourseMode
