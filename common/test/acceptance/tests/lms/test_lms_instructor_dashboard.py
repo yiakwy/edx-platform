@@ -340,13 +340,19 @@ class DataDownloadsTest(BaseInstructorDashboardTest):
             }]
         )
 
-    def verify_report_download(self):
+    def verify_report_download(self, report_name):
         """
         Verifies that a report can be downloaded and an event fired.
         """
         download_links = self.data_download_section.report_download_links
         download_links[0].click()
         expected_url = download_links.attrs('href')[0]
+        if not len(download_links) == 1 or report_name not in expected_url:
+            self.assertEqual(
+                [expected_url],
+                download_links.attrs('href'),
+                msg="Only the expected report should have been generated"
+            )
         self.verify_report_downloaded_event(expected_url)
 
     def test_student_profiles_report_download(self):
@@ -361,10 +367,11 @@ class DataDownloadsTest(BaseInstructorDashboardTest):
         When I click on the report
         Then a report downloaded event should be emitted
         """
+        report_name = u"student_profile_info"
         self.data_download_section.generate_student_profile_report_button.click()
         self.data_download_section.wait_for_available_report()
-        self.verify_report_requested_event(u"student_profile_info")
-        self.verify_report_download()
+        self.verify_report_requested_event(report_name)
+        self.verify_report_download(report_name)
 
     def test_grade_report_download(self):
         """
@@ -378,10 +385,11 @@ class DataDownloadsTest(BaseInstructorDashboardTest):
         When I click on the report
         Then a report downloaded event should be emitted
         """
+        report_name = u"grade_report"
         self.data_download_section.generate_grade_report_button.click()
         self.data_download_section.wait_for_available_report()
-        self.verify_report_requested_event(u"grade_report")
-        self.verify_report_download()
+        self.verify_report_requested_event(report_name)
+        self.verify_report_download(report_name)
 
     def test_weighted_problem_grade_report_download(self):
         """
@@ -395,7 +403,8 @@ class DataDownloadsTest(BaseInstructorDashboardTest):
         When I click on the report
         Then a report downloaded event should be emitted
         """
+        report_name = u"problem_grade_report"
         self.data_download_section.generate_weighted_problem_grade_report_button.click()
         self.data_download_section.wait_for_available_report()
-        self.verify_report_requested_event(u"problem_grade_report")
-        self.verify_report_download()
+        self.verify_report_requested_event(report_name)
+        self.verify_report_download(report_name)
