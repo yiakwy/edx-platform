@@ -379,9 +379,6 @@ class @MarkdownEditingDescriptor extends XModule.Descriptor
           line = line.replace(/<(textline|optioninput|formulaequationinput|choicegroup|checkboxgroup)/, '<$1 label="' + curlabel + '"');
           didinput = true;
           prevlabel = curlabel;
-        } else if (match = line.match(/({{||}})/)) {
-          line = line.replace(/{{/g, '<fieldset>');
-          line = line.replace(/}}/g, '</fieldset>');
         }
         new_xml.push(line);
       }

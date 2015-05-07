@@ -139,6 +139,8 @@ class LoncapaProblem(object):
         self.do_reset()
         self.problem_id = id
         self.capa_system = capa_system
+        self.question_label = ""
+        self.form_responders = ['multiplechoiceresponse', 'choiceresponse']
 
         state = state or {}
 
@@ -732,6 +734,7 @@ class LoncapaProblem(object):
                 'status': status,
                 'id': input_id,
                 'input_state': self.input_state[input_id],
+                'question_label': self.question_label if self.question_label else None,
                 'answervariable': answervariable,
                 'feedback': {
                     'message': msg,
@@ -762,7 +765,10 @@ class LoncapaProblem(object):
         tree = etree.Element(problemtree.tag)
         for item in problemtree:
             item_xhtml = self._extract_html(item)
-            if item_xhtml is not None:
+            item_sibling = self.get_sibling(problemtree, item)
+            if item_xhtml.tag == "legend" and item_sibling is not None and item_sibling in self.responders:
+                self.question_label = item_xhtml.text
+            elif item_xhtml is not None:
                 tree.append(item_xhtml)
 
         if tree.tag in html_transforms:
@@ -834,3 +840,18 @@ class LoncapaProblem(object):
         for solution in tree.findall('.//solution'):
             solution.attrib['id'] = "%s_solution_%i" % (self.problem_id, solution_id)
             solution_id += 1
+
+    def get_sibling(self, tree, node):
+        """
+        Check if node exist in problem tree and return next sibling if exist
+        else return None
+        """
+        problem_tree = tree.xpath('//problem/*')
+        if node in problem_tree:
+            node_index = problem_tree.index(node)
+            try:
+                return problem_tree[node_index + 1]
+            except IndexError:
+                return None
+        else:
+            return None
