@@ -138,6 +138,9 @@ requirejs.config({
             deps: ["backbone"],
             exports: "Backbone.Paginator"
         },
+        "backbone-relational": {
+            deps: ["backbone"],
+        },
         "youtube": {
             exports: "YT"
         },
