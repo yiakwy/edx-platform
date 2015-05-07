@@ -52,3 +52,4 @@ git+https://github.com/edx/ecommerce-api-client.git@0.3.0#egg=ecommerce-api-clie
 
 # Third Party XBlocks
 -e git+https://github.com/mitodl/edx-sga@172a90fd2738f8142c10478356b2d9ed3e55334a#egg=edx-sga
+-e git+https://github.com/mckinseyacademy/xblock-poll@ca0e6eb4ef10c128d573c3cec015dcfee7984730#egg=xblock-poll
