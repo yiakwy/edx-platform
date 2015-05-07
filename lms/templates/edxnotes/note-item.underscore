@@ -39,9 +39,6 @@
             <h3 class="reference-title"><%- gettext("Tags:") %></h3>
             <% for (var i = 0; i < tags.length; i++) { %>
                 <a class="reference-meta reference-tags" href="#"><%- tags[i] %></a>
-                <% if (i < tags.length - 1) { %>
-                    <span class="reference-meta reference-tags">,</span>
-                <% } %>
             <% } %>
         <% } %>
     </div>

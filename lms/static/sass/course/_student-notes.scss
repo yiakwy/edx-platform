@@ -233,10 +233,22 @@ $divider-visual-tertiary: ($baseline/20) solid $gray-l4;
             color: $m-gray-d2;
           }
 
+          // Put commas between tags.
+          a.reference-meta.reference-tags:after {
+            content: ",";
+            color: $m-gray-d2;
+          }
+
+          // But not after the last tag.
+          a.reference-meta.reference-tags:last-child:after {
+              content: "";
+          }
+
           // needed for poor base LMS styling scope
           a.reference-meta {
             @extend %shame-link-text;
           }
+
         }
       }
 
