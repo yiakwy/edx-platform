@@ -181,6 +181,8 @@ def _section_e_commerce(course, access, paid_mode, coupons_enabled):
         'spent_registration_code_csv_url': reverse('spent_registration_codes', kwargs={'course_id': unicode(course_key)}),
         'set_course_mode_url': reverse('set_course_mode_price', kwargs={'course_id': unicode(course_key)}),
         'download_coupon_codes_url': reverse('get_coupon_codes', kwargs={'course_id': unicode(course_key)}),
+        'enrollment_report_url': reverse('get_enrollment_report', kwargs={'course_id': unicode(course_key)}),
+        'list_report_downloads_url': reverse('list_report_downloads', kwargs={'course_id': unicode(course_key)}),
         'coupons': coupons,
         'sales_admin': access['sales_admin'],
         'coupons_enabled': coupons_enabled,

@@ -148,6 +148,15 @@ def sale_record_features(course_id, features):
     return [sale_records_info(sale, features) for sale in sales]
 
 
+def detailed_enrollment_report(course_key, features):
+    """
+
+    :param course_key:
+    :param features:
+    :return:
+    """
+
+
 def enrolled_students_features(course_key, features):
     """
     Return list of student features as dictionaries.

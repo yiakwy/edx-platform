@@ -1903,6 +1903,12 @@ GRADES_DOWNLOAD = {
     'ROOT_PATH': '/tmp/edx-s3/grades',
 }
 
+DETAILED_ENROLLMENT_REPORT = {
+    'STORAGE_TYPE': 'localfs',
+    'BUCKET': 'edx-grades',
+    'ROOT_PATH': '/tmp/edx-s3/grades',
+}
+
 
 #### PASSWORD POLICY SETTINGS #####
 PASSWORD_MIN_LENGTH = 8

@@ -16,6 +16,8 @@ from django.core.files.storage import DefaultStorage
 from django.db import transaction, reset_queries
 import dogstats_wrapper as dog_stats_api
 from pytz import UTC
+from instructor.cybersource_enrollment_report import CyberSourceEnrollmentReportProvider
+from instructor.enrollment_report import BaseEnrollmentReportProvider
 
 from track.views import task_track
 from util.file import course_filename_prefix_generator, UniversalNewlineIterator
@@ -50,6 +52,25 @@ UNKNOWN_TASK_ID = 'unknown-task_id'
 UPDATE_STATUS_SUCCEEDED = 'succeeded'
 UPDATE_STATUS_FAILED = 'failed'
 UPDATE_STATUS_SKIPPED = 'skipped'
+
+USER_INFO_ATTRIBUTES = [
+    ('id', 'User Id'),
+    ('username', 'User Name'),
+    ('first_name', 'First Name'),
+    ('last_name', 'Last Name'),
+]
+
+USER_PROFILE_ATTRIBUTES = [
+    ('language', 'Language'),
+    ('location', 'Location'),
+    ('year_of_birth', 'Year of Birth'),
+    ('gender', 'Gender'),
+    ('level_of_education', 'Level of Education'),
+    ('mailing_address', 'Mailing Address'),
+    ('goals', 'Goals'),
+    ('city', 'City'),
+    ('country', 'Country'),
+]
 
 
 class BaseInstructorTask(Task):
@@ -713,7 +734,9 @@ def upload_students_csv(_xmodule_instance_args, _entry_id, course_id, task_input
     """
     start_time = time()
     start_date = datetime.now(UTC)
-    task_progress = TaskProgress(action_name, CourseEnrollment.num_enrolled_in(course_id), start_time)
+    enrolled_students = CourseEnrollment.users_enrolled_in(course_id)
+    task_progress = TaskProgress(action_name, enrolled_students.count(), start_time)
+
     current_step = {'step': 'Calculating Profile Info'}
     task_progress.update_task_state(extra_meta=current_step)
 
@@ -733,6 +756,99 @@ def upload_students_csv(_xmodule_instance_args, _entry_id, course_id, task_input
     # Perform the upload
     upload_csv_to_report_store(rows, 'student_profile_info', course_id, start_date)
 
+    return task_progress.update_task_state(extra_meta=current_step)
+
+
+def upload_enrollment_report(_xmodule_instance_args, _entry_id, course_id, _task_input, action_name):
+    """
+    For a given `course_id`, generate a CSV file containing profile
+    information for all students that are enrolled, and store using a
+    `ReportStore`.
+    """
+    start_time = time()
+    start_date = datetime.now(UTC)
+    status_interval = 100
+    enrolled_students = CourseEnrollment.users_enrolled_in(course_id)
+    task_progress = TaskProgress(action_name, enrolled_students.count(), start_time)
+
+    fmt = u'Task: {task_id}, InstructorTask ID: {entry_id}, Course: {course_id}, Input: {task_input}'
+    task_info_string = fmt.format(
+        task_id=_xmodule_instance_args.get('task_id') if _xmodule_instance_args is not None else None,
+        entry_id=_entry_id,
+        course_id=course_id,
+        task_input=_task_input
+    )
+    TASK_LOG.info(u'%s, Task type: %s, Starting task execution', task_info_string, action_name)
+
+    course = get_course_by_id(course_id)
+
+    # Loop over all our students and build our CSV lists in memory
+    header = None
+    rows = []
+    err_rows = [["id", "username", "error_msg"]]
+    current_step = {'step': 'Gathering Profile Information'}
+    enrollment_provider = CyberSourceEnrollmentReportProvider()
+    total_enrolled_students = enrolled_students.count()
+    student_counter = 0
+    TASK_LOG.info(
+        u'%s, Task type: %s, Current step: %s, Starting grade calculation for total students: %s',
+        task_info_string,
+        action_name,
+        current_step,
+        total_enrolled_students
+    )
+    for student in enrolled_students:
+        # Periodically update task status (this is a cache write)
+        if task_progress.attempted % status_interval == 0:
+            task_progress.update_task_state(extra_meta=current_step)
+        task_progress.attempted += 1
+
+        # Now add a log entry after certain intervals to get a hint that task is in progress
+        student_counter += 1
+        if student_counter % 1000 == 0:
+            TASK_LOG.info(
+                u'%s, Task type: %s, Current step: %s, gathering enrollment profile for students in progress: %s/%s',
+                task_info_string,
+                action_name,
+                current_step,
+                student_counter,
+                total_enrolled_students
+            )
+        user_info = enrollment_provider.get_user_profile(student.id)
+        if not header:
+            user_info_header = [x[1] for x in USER_INFO_ATTRIBUTES]
+            user_profile_header = [x[1] for x in USER_PROFILE_ATTRIBUTES]
+            header = user_info_header + user_profile_header
+            rows.append(header)
+
+        user_info_data = [getattr(user_info, x[0]) for x in USER_INFO_ATTRIBUTES]
+        user_profile_data = [getattr(user_info.profile, x[0]) for x in USER_PROFILE_ATTRIBUTES]
+
+        rows.append(user_info_data+user_profile_data)
+
+    TASK_LOG.info(
+        u'%s, Task type: %s, Current step: %s, Grade calculation completed for students: %s/%s',
+        task_info_string,
+        action_name,
+        current_step,
+        student_counter,
+        total_enrolled_students
+    )
+
+    # By this point, we've got the rows we're going to stuff into our CSV files.
+    current_step = {'step': 'Uploading CSVs'}
+    task_progress.update_task_state(extra_meta=current_step)
+    TASK_LOG.info(u'%s, Task type: %s, Current step: %s', task_info_string, action_name, current_step)
+
+    # Perform the actual upload
+    upload_csv_to_report_store(rows, 'enrollment_report', course_id, start_date)
+
+    # If there are any error rows (don't count the header), write them out as well
+    if len(err_rows) > 1:
+        upload_csv_to_report_store(err_rows, 'grade_report_err', course_id, start_date)
+
+    # One last update before we close out...
+    TASK_LOG.info(u'%s, Task type: %s, Finalizing detailed enrollment task', task_info_string, action_name)
     return task_progress.update_task_state(extra_meta=current_step)
 
 

@@ -54,9 +54,6 @@ class ECommerce
   onClickTitle: ->
     @clear_display()
 
-  # handler for when the section title is clicked.
-  onClickTitle: -> @clear_display()
-
   # handler for when the section is closed
   onExit: -> @clear_display()
 

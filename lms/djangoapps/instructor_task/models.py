@@ -198,12 +198,12 @@ class ReportStore(object):
     passing in the whole dataset. Doing that for now just because it's simpler.
     """
     @classmethod
-    def from_config(cls):
+    def from_config(cls, config_name='GRADES_DOWNLOAD'):
         """
         Return one of the ReportStore subclasses depending on django
         configuration. Look at subclasses for expected configuration.
         """
-        storage_type = settings.GRADES_DOWNLOAD.get("STORAGE_TYPE")
+        storage_type = getattr(settings, config_name).get("STORAGE_TYPE")
         if storage_type.lower() == "s3":
             return S3ReportStore.from_config()
         elif storage_type.lower() == "localfs":

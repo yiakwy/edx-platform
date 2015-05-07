@@ -1092,6 +1092,31 @@ def get_coupon_codes(request, course_id):  # pylint: disable=unused-argument
     return instructor_analytics.csvs.create_csv_response('Coupons.csv', header, data_rows)
 
 
+@ensure_csrf_cookie
+@cache_control(no_cache=True, no_store=True, must_revalidate=True)
+@require_level('staff')
+def get_enrollment_report(request, course_id):  # pylint: disable=unused-argument
+    """
+    get the enrollment report for the particular course.
+    """
+    course_key = SlashSeparatedCourseKey.from_deprecated_string(course_id)
+    query_features = [
+        'code', 'course_id', 'percentage_discount', 'code_redeemed_count', 'description', 'expiration_date', 'is_active'
+    ]
+    try:
+        instructor_task.api.submit_enrollment_report_features_csv(request, course_key, query_features)
+        success_status = _("Your enrollment report is being generated! "
+                           "You can view the status of the generation task in the 'Pending Instructor Tasks' section.")
+        return JsonResponse({"status": success_status})
+    except AlreadyRunningError:
+        already_running_status = _("A grade report generation task is already in progress. "
+                                   "Check the 'Pending Instructor Tasks' table for the status of the task. "
+                                   "When completed, the report will be available for download in the table below.")
+        return JsonResponse({
+            "status": already_running_status
+        })
+
+
 def save_registration_code(user, course_id, mode_slug, invoice=None, order=None, invoice_item=None):
     """
     recursive function that generate a new code every time and saves in the Course Registration Table
