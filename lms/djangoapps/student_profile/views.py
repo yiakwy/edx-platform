@@ -78,11 +78,11 @@ def learner_profile_context(logged_in_user, profile_username, user_is_staff, bui
     ]
     own_profile = (logged_in_user.username == profile_username)
 
-    accounts_data = get_account_settings(logged_in_user, profile_username)
+    account_settings = get_account_settings(logged_in_user, profile_username)
     # Account for possibly relative URLs.
-    for key, value in accounts_data['profile_image'].items():
+    for key, value in account_settings['profile_image'].items():
         if key.startswith(PROFILE_IMAGE_KEY_PREFIX):
-            accounts_data['profile_image'][key] = build_absolute_uri_func(value)
+            account_settings['profile_image'][key] = build_absolute_uri_func(value)
 
     preferences_data = get_user_preferences(profile_user, profile_username)
 
@@ -94,7 +94,7 @@ def learner_profile_context(logged_in_user, profile_username, user_is_staff, bui
             'accounts_api_url': reverse("accounts_api", kwargs={'username': profile_username}),
             'preferences_api_url': reverse('preferences_api', kwargs={'username': profile_username}),
             'preferences_data': preferences_data,
-            'accounts_data': accounts_data,
+            'account_settings': account_settings,
             'profile_image_upload_url': reverse('profile_image_upload', kwargs={'username': profile_username}),
             'profile_image_remove_url': reverse('profile_image_remove', kwargs={'username': profile_username}),
             'profile_image_max_bytes': settings.PROFILE_IMAGE_MAX_BYTES,
