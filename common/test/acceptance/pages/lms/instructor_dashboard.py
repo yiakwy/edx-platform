@@ -111,7 +111,7 @@ class CohortManagementSection(PageObject):
     }
 
     def is_browser_on_page(self):
-        return self.q(css='.cohort-management').present
+        return self.q(css='.wrapper-cohort-supplemental').visible
 
     def _bounded_selector(self, selector):
         """
@@ -480,13 +480,8 @@ class CohortManagementSection(PageObject):
         """
         Shows the discussion topics.
         """
-        EmptyPromise(
-            lambda: self.q(css=self._bounded_selector('.toggle-cohort-management-discussions')).results != 0,
-            "Waiting for discussion section to show"
-        ).fulfill()
-
-        # If the discussion topic section has not yet been toggled on, click on the toggle link.
-        self.q(css=self._bounded_selector(".toggle-cohort-management-discussions")).click()
+        self.q(css=self._bounded_selector(".toggle-cohort-management-discussions")).first.click()
+        self.wait_for_element_visibility("#cohort-management-discussion-topics", "Waiting for discussions to appear")
 
     def discussion_topics_visible(self):
         """
